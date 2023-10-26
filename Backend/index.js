@@ -45,8 +45,8 @@ app.use(bodyParser.urlencoded({ limit: "10mb", extended: true })); // To pass ur
 app.use(cors()); // Allow Cross Origin Resource Sharing
 
 // ------------- Rate Limiting --------------
-app.use(limiterMinutes);
-app.use(limiterHours);
+// app.use(limiterMinutes);
+// app.use(limiterHours);
 
 app.get("/isItWorking", (req, res) => {
   res.send("Yes, it is working");
