@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { progressBar } from "../../utils/helper/apiIntegration";
 
 function getDay() {
+  return 9;
   const target = new Date(2023, 9, 17);
   const todayIstMil =
     new Date().getTime();

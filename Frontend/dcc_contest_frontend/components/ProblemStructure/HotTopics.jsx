@@ -4,6 +4,7 @@ import { flushSync } from "react-dom";
 import { problemSet, problemDescription } from "../../utils/fakeData/data";
 
 function getDay() {
+  return 9;
   const target = new Date(2023, 9, 17);
   const todayIstMil =
     new Date().getTime();
