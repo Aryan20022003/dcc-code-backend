@@ -1,7 +1,7 @@
 const rateLimit = require("express-rate-limit");
 
 const maxRequestsPerMinute = 40;
-const maxRequestsPerHour = 100;
+const maxRequestsPerHour = 180;
 
 const limiterMinutes = rateLimit({
   windowMs: 60 * 1000,
