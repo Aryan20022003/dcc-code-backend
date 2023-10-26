@@ -1,4 +1,5 @@
 const calculateCurrDays = () => {
+  return 9;
   const target = new Date(2023, 9, 17);
   const todayIstMil =
     new Date().getTime() + 5 * 60 * 60 * 1000 + 30 * 60 * 1000;
