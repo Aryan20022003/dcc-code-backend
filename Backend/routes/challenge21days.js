@@ -3,6 +3,7 @@ const Question21 = require("../models/question21");
 const Question = require("../models/question.js");
 const populateDataToOriginalServer = require("../controllers/question/populateDataToOriginalServer.js");
 const router = express.Router();
+const { verifyAdmin, passby } = require("../middlewares/verifyToken");
 const leaderBoard = require("../models/leaderBoard.js");
 const user = require("../models/user.js");
 const isDataMounted = new Array(22).fill(false);
@@ -11,14 +12,14 @@ const calculateCurrDays = require("../utils/calculateCurrDays.js");
 const Submission = require("../models/submission");
 const moment = require("moment");
 const { BACKEND_URL } = require("../utils/constants.js");
-const customComp=require("../utils/customComp.js");
+const customComp = require("../utils/customComp.js");
 const axios = require("axios");
 
 router.get("/getQuestion", async (req, res) => {
   const requiredAttributes = ["name", "ques_id", "day"];
   try {
     const questions = await Question21.find().select(requiredAttributes).exec();
-    const day = calculateCurrDays(); 
+    const day = calculateCurrDays();
     // const day=4;//day is 1-indexed
     console.log(day);
     if (day <= 0) {
@@ -39,7 +40,7 @@ router.get("/getQuestion", async (req, res) => {
     //{[name,ques_id,day,isToday]}
     if (isDataMounted[day] === false) {
       // let dayToSearch = calculateCurrDays().toString();
-      let dayToSearch=day.toString();
+      let dayToSearch = day.toString();
       if (dayToSearch.length === 1) {
         dayToSearch = "0" + dayToSearch;
       }
@@ -51,7 +52,13 @@ router.get("/getQuestion", async (req, res) => {
         console.log("result from populated function ", resultMounted);
 
         if (resultMounted.status === 400) {
-          res.status(200).json({ message: "OKAY", questions: questions, remarks: resultMounted.message});
+          res
+            .status(200)
+            .json({
+              message: "OKAY",
+              questions: questions,
+              remarks: resultMounted.message,
+            });
           return;
         }
 
@@ -63,9 +70,7 @@ router.get("/getQuestion", async (req, res) => {
         console.log("server restarted but data already mounted");
       }
       isDataMounted[day] = true;
-    }
-    else
-    {
+    } else {
       console.log("already mounted");
     }
     //{status:200,questions:[{name,ques_id,day,isToday}]}
@@ -152,7 +157,7 @@ router.post("/userDetails", async (req, resp) => {
         .sort({ time_stamp: 1 })
         .exec();
       const sub = submission.filter((s) => s.verdict === "Accepted");
-      console.log(sub)
+      console.log(sub);
       if (sub.length !== 0) {
         const parsedDate = moment(sub[0].time_stamp, "DD/MM/YYYY HH:mm", true);
         thisDaySubmitTimeStamp = parsedDate.toDate();
@@ -204,12 +209,10 @@ router.post("/userDetails", async (req, resp) => {
 router.get("/leaderBoard", async (req, resp) => {
   //[{status:200,data:{username:"",name:"",point:"",codeForces:""}}]
   try {
-    const leaderBoardData = await leaderBoard
-      .find()
-      .exec();
-      // .sort({ totalScore: -1, thisDaySubmitTimeStamp: 1 })
+    const leaderBoardData = await leaderBoard.find().exec();
+    // .sort({ totalScore: -1, thisDaySubmitTimeStamp: 1 })
 
-      leaderBoardData.sort(customComp);
+    leaderBoardData.sort(customComp);
 
     //function not Allowed in Atlas Tier
     // const leaderBoardData = await leaderBoard.aggregate([
@@ -246,7 +249,7 @@ router.get("/leaderBoard", async (req, resp) => {
     //     },
     //   },
     // ]).exec();
-    
+
     // updateData(leaderBoardData)
 
     return resp.status(200).json({ data: leaderBoardData });
@@ -344,7 +347,7 @@ router.post("/topicCodeForces", async (req, res) => {
 
     const codeforcesUrl = `https://codeforces.com/api/user.status?handle=${username}&from=1&count=500`;
     const response = await axios.get(codeforcesUrl);
-    const jsonObject= response.data;
+    const jsonObject = response.data;
     const status = jsonObject.result;
     let binaryString = "0";
 
@@ -377,19 +380,50 @@ router.post("/topicCodeForces", async (req, res) => {
   } catch (err) {
     console.log("Error: " + err);
     // res.status(400).send({ message: "Problem Status Failed", success: false });
-    const bs = '0'.repeat(22);
-    res.status(200).send({ bs, success: true, message: "Problem Status Failed" });
+    const bs = "0".repeat(22);
+    res
+      .status(200)
+      .send({ bs, success: true, message: "Problem Status Failed" });
   }
 });
 
 router.get("/time", (req, res) => {
   const date = new Date();
-  res.status(200).send({ date: date.toDateString(), time: date.toTimeString() });
+  res
+    .status(200)
+    .send({ date: date.toDateString(), time: date.toTimeString() });
 });
 router.get("/day", (req, res) => {
   const day = calculateCurrDays();
   res.status(200).send({ day });
 });
+
+// router.post("/leaderBoardSync", verifyAdmin, async (req, resp) => {
+//   //fetch all the users from leaderBoard
+//   try {
+//     const leaderBoardData = await leaderBoard.find().exec();
+
+//     //run a loop for each user
+//     const newLeaderBoardData=leaderBoardData.map(async(user) => 
+//     {
+//         const updatedUser=await updateLeaderBoardData(user);
+//         user.headMap=updatedUser.headMap;
+//         user.totalScore=updatedUser.totalScore;
+//         user.thisDaySubmitTimeStamp=updatedUser.thisDaySubmitTimeStamp;
+//         return user;
+//     });
+
+//     //update the leaderBoard with the newLeaderBoardData
+//     newLeaderBoardData.forEach(async(element) => {
+      
+//     });
+
+
+
+//   } catch (e) {
+//     return resp.status(500).json({ message: "error in syncing leaderBoard" });
+//   }
+// });
 
 router.get("/testLogin", async (req, resp) => {
   try {
@@ -401,18 +435,19 @@ router.get("/testLogin", async (req, resp) => {
     console.log(apiUrl, postData);
     const response = await axios.post(apiUrl, postData, {
       headers: {
-        'Content-Type': 'application/json', // Set the Content-Type to JSON
+        "Content-Type": "application/json", // Set the Content-Type to JSON
       },
     });
 
     if (response.status !== 200) {
-      throw new Error('Network response was not unable to signIn');
+      throw new Error("Network response was not unable to signIn");
     }
     const responseData = response.data;
     console.log(responseData);
-    resp.status(200).json({ message: `login Successfully userName ${process.env.LOGIN_ID}` });
-  } catch (err) 
-  {
+    resp
+      .status(200)
+      .json({ message: `login Successfully userName ${process.env.LOGIN_ID}` });
+  } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 });

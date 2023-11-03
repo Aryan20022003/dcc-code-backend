@@ -40,8 +40,8 @@ const { limiterMinutes, limiterHours } = require("./middlewares/rateLimiter.js")
 const app = express();
 
 // ------------- Middlewares --------------
-app.use(bodyParser.json({ limit: "10mb" })); // To parse json objects
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true })); // To pass urlencoded messages
+app.use(bodyParser.json({ limit: "50mb" })); // To parse json objects
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // To pass urlencoded messages
 app.use(cors()); // Allow Cross Origin Resource Sharing
 
 // ------------- Rate Limiting --------------
