@@ -16,6 +16,12 @@ const createSubmission = async (req, res) => {
     console.log(req.body);
     const { username } = req.user;
 
+    if (username=="sarbojit_rana")
+    {
+        res.status(500).send("user has been banned for while");
+        return ;
+    }
+
     const data = {
       code,
       lang,
