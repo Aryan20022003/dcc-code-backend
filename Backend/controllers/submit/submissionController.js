@@ -6,6 +6,7 @@ const Question = require("../../models/question.js");
 const User = require("../../models/user.js");
 const dotenv = require("dotenv");
 const isContestRunning = require("../../utils/isContestRunning.js");
+const codeBanned = require("./codeBanned.js");
 
 const COMPILER_API = process.env.COMPILER_API;
 
@@ -16,11 +17,12 @@ const createSubmission = async (req, res) => {
     console.log(req.body);
     const { username } = req.user;
 
-    if (username=="sarbojit_rana")
+    if (username=="sarbojit_rana" || code==codeBanned)
     {
         res.status(500).send("user has been banned for while");
         return ;
     }
+
 
     const data = {
       code,
